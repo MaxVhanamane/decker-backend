@@ -114,46 +114,17 @@ app.use(passport.initialize())
 // allow passport to use "express-session".
 app.use(passport.session())
 
-const isDev = process.env.NODE_ENV === 'development';
 
-// Database connection middleware for production/serverless
-async function dbMiddleware(req: Request, res: Response, next: NextFunction) {
-  //  Skip if already connected
-  if (mongoose.connection.readyState === 1) {
-    console.log("Already connected to the database")
-    return next();
-  }
-
-  // Otherwise, connect
-  try {
-    await connectToMongoDB();
-    console.log("Connecting to the database")
-    next();
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    res.status(503).json({ error: 'Service temporarily unavailable' });
-  }
-}
-
-
-// Only use middleware in production (Vercel)
-if (!isDev) {
-  app.use(dbMiddleware);
-}
-
-// Development: Connect once at startup
-if (isDev) {
-  connectToMongoDB()
-    .then(() => {
-      app.listen(PORT, () => {
-        console.log(`Development server running on port ${PORT}`);
-      });
-    })
-    .catch((err) => {
-      console.error('Failed to connect to MongoDB in development:', err);
-      process.exit(1);
+connectToMongoDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
-}
+  })
+  .catch((err) => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1); // Exit process if DB connection fails
+  });
 
 // local strategy 
 passport.use(new LocalStrategy(
