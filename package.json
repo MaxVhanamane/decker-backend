@@ -5,12 +5,11 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"ts-node  ./src/app.ts",
-    "start": "node ./build/app.js",
+    "start": "node ./build/src/app.js",
     "build": "tsc -p .",
     "vercel-build": "true"
   },
   "dependencies": {
-    "@types/compression": "^1.7.5",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.5",
     "connect-mongo": "^5.1.0",
@@ -27,6 +26,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/compression": "^1.7.5",
     "@types/bcryptjs": "^2.4.2",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.21",
