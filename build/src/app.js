@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -25,7 +48,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = require("dotenv");
 const express_1 = __importDefault(require("express"));
-const mongoose_1 = require("mongoose");
+const mongoose_1 = __importStar(require("mongoose"));
 const deck_1 = __importDefault(require("./models/deck"));
 const cors_1 = __importDefault(require("cors"));
 const express_session_1 = __importDefault(require("express-session"));
@@ -46,6 +69,7 @@ const GoogleStrategy = require("passport-google-oauth20");
 const compression_1 = __importDefault(require("compression"));
 const searchService_1 = require("./services/searchService");
 const extractTextFromSlateNodes_1 = require("./utils/extractTextFromSlateNodes");
+const card_1 = require("./models/card");
 (0, dotenv_1.config)();
 let PORT = 5000;
 const isProduction = process.env.NODE_ENV === 'production';
@@ -54,7 +78,6 @@ app.use((0, compression_1.default)());
 // here app.use() acts as middleware. as we have not specified the path here it will run on every request. If you want to run it on a specific path add the path then it will run on that path only. eg. app.use("/add",express.json())
 // express.json() is used to get the content in the body.
 app.use(express_1.default.json({ limit: '5mb' }));
-// To detect if the user is offline
 // cors is used to get request from different origin. eg. If your backend is running on http://localhost:5000 you can't request from 
 // http://localhost:3000 it gives you cross-origin error. to avoid that error we use cors.
 app.use((0, cors_1.default)({ origin: process.env.ORIGIN, credentials: true }));
@@ -76,7 +99,7 @@ app.use((0, express_session_1.default)({
         httpOnly: isProduction,
         sameSite: isProduction ? 'none' : 'lax',
         secure: isProduction,
-        maxAge: 1000 * 60 * 60 * 24 * 10 //cookie expires in 30 days
+        maxAge: 1000 * 60 * 60 * 24 * 30 //cookie expires in 30 days
     }
 }));
 app.use(cookieParser());
@@ -209,8 +232,7 @@ app.get('/decks', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(v
             { $sort: { date: -1 } },
             {
                 $project: {
-                    title: 1, pinned: 1, createdAt: 1, deckId: 1, _id: 0,
-                    cardsCount: { $size: "$cards" },
+                    title: 1, pinned: 1, createdAt: 1, deckId: 1, cardsCount: 1, _id: 0,
                 }
             }
         ]);
@@ -257,16 +279,6 @@ app.post("/reorder-deck", (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
     catch (error) {
         res.status(500).json({ message: 'Error moving deck', error });
-    }
-}));
-app.get('/decks-and-cards', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const user = req === null || req === void 0 ? void 0 : req.user;
-        const decks = yield deck_1.default.find({ email: user === null || user === void 0 ? void 0 : user._id }, { title: 1, cards: 1, pinned: 1, createdAt: 1, _id: 0, deckId: 1 }).sort({ date: -1 });
-        res.status(200).json(decks);
-    }
-    catch (error) {
-        res.status(500).json({ message: "Internal server error!" });
     }
 }));
 app.get("/search", fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -392,7 +404,7 @@ app.delete('/deck/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => _
             deletedDeckInfo: {
                 title: result.title,
                 deckId: result.deckId,
-                cardCount: result.cards.length
+                cardCount: result.cardsCount
             }
         });
     }
@@ -404,30 +416,13 @@ app.delete('/deck/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => _
 // Card routes
 app.get('/cards/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = yield deck_1.default.aggregate([
-            { $match: { deckId: req.params.deckId } },
-            {
-                $project: {
-                    _id: 0,
-                    deckId: 1,
-                    title: 1,
-                    cards: {
-                        $map: {
-                            input: "$cards",
-                            as: "cardItem",
-                            in: {
-                                cardId: "$$cardItem.cardId",
-                                note: "$$cardItem.note",
-                                createdAt: "$$cardItem.createdAt",
-                            }
-                        }
-                    }
-                }
-            }
-        ]);
-        const cardDetails = data[0];
-        if (cardDetails) {
-            res.status(200).json({ cards: cardDetails.cards, title: cardDetails.title });
+        const data = yield card_1.CardModel.find({ deckId: req.params.deckId }, { cardId: 1, note: 1, createdAt: 1, order: 1, _id: 0 } // include order in projection if you want
+        )
+            .sort({ order: -1 })
+            .exec();
+        const maxOrder = data.length > 0 ? data[0].order : -1;
+        if (data) {
+            res.status(200).json({ cards: data, maxOrder: maxOrder });
         }
         else {
             res.status(404).json({ message: "No cards found!" });
@@ -445,37 +440,44 @@ app.get('/cards/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __a
 }));
 app.post('/card/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _j, _k, _l, _m;
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
     try {
-        const Deck = yield deck_1.default.findOne({ deckId: req.params.deckId });
-        if (!Deck) {
-            return res.status(400).json({ message: "No deck found! Please check deck id" });
-        }
+        const deckId = req.params.deckId;
+        const newOrder = Number(req.body.maxOrder) + 10;
         let searchableContent = "";
         if ((_k = (_j = req.body) === null || _j === void 0 ? void 0 : _j.content) === null || _k === void 0 ? void 0 : _k.note) {
             searchableContent = (0, extractTextFromSlateNodes_1.extractTextFromSlateNodes)((_m = (_l = req.body) === null || _l === void 0 ? void 0 : _l.content) === null || _m === void 0 ? void 0 : _m.note);
         }
-        Deck.cards.unshift(Object.assign(Object.assign({}, req.body.content), { searchableContent }));
-        yield Deck.save();
+        // 1. Create the new card
+        const newCard = new card_1.CardModel(Object.assign(Object.assign({}, req.body.content), { searchableContent, order: newOrder, deckId }));
+        yield newCard.save({ session });
+        // 2. Increment the cardsCount for that deck
+        yield deck_1.default.updateOne({ deckId }, { $inc: { cardsCount: 1 } }, { session });
+        yield session.commitTransaction();
+        session.endSession();
         res.status(201).json({ success: true });
     }
     catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
         res.status(500).json({ message: "An unexpected error occurred while creating the card. Please try again later." });
     }
 }));
 //Edit card
 app.patch('/card/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const deckId = req.params.deckId;
-    const index = req.body.index;
+    const cardId = req.body.cardId;
     const { note } = req.body.newContent;
     let searchableContent = "";
     if (note) {
         searchableContent = (0, extractTextFromSlateNodes_1.extractTextFromSlateNodes)(note);
     }
     try {
-        const updatedCard = yield deck_1.default.findOneAndUpdate({ deckId }, {
+        const updatedCard = yield card_1.CardModel.findOneAndUpdate({ deckId, cardId }, {
             $set: {
-                [`cards.${index}.note`]: note,
-                [`cards.${index}.searchableContent`]: searchableContent,
+                note,
+                searchableContent,
             },
         }, { new: true });
         if (!updatedCard) {
@@ -488,61 +490,75 @@ app.patch('/card/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __
     }
 }));
 app.put('/card/undocard', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const deckId = req.body.deckId;
-    const cardContent = req.body.content;
-    const cardIndex = req.body.index;
-    let searchableContent = "";
-    if (cardContent === null || cardContent === void 0 ? void 0 : cardContent.note) {
-        searchableContent = (0, extractTextFromSlateNodes_1.extractTextFromSlateNodes)(cardContent === null || cardContent === void 0 ? void 0 : cardContent.note);
-    }
-    const updatedContent = Object.assign(Object.assign({}, cardContent), { searchableContent });
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
     try {
-        yield deck_1.default.findOneAndUpdate({ deckId }, { $push: { cards: { $each: [updatedContent], $position: cardIndex } } });
+        const cardContent = req.body.undoCardDetails;
+        const deckId = cardContent.deckId;
+        let searchableContent = "";
+        if (cardContent === null || cardContent === void 0 ? void 0 : cardContent.note) {
+            searchableContent = (0, extractTextFromSlateNodes_1.extractTextFromSlateNodes)(cardContent === null || cardContent === void 0 ? void 0 : cardContent.note);
+        }
+        const updatedContent = Object.assign(Object.assign({}, cardContent), { searchableContent });
+        // 1. Restore the card
+        const newCard = new card_1.CardModel(updatedContent);
+        yield newCard.save({ session });
+        // 2. Increment deck's cardsCount
+        yield deck_1.default.updateOne({ deckId }, { $inc: { cardsCount: 1 } }, { session });
+        yield session.commitTransaction();
+        session.endSession();
         res.status(200).json({ success: true });
     }
     catch (error) {
-        res.status(500).json({ message: "An unexpected error occurred while undoing the deck deletion." });
+        yield session.abortTransaction();
+        session.endSession();
+        res.status(500).json({
+            message: "An unexpected error occurred while undoing the card deletion."
+        });
     }
 }));
-app.delete('/card/:deckId/:index', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _o, _p;
+app.delete('/card/:deckId/:cardId/:order', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
     try {
-        const rawIndex = (_o = req.params) === null || _o === void 0 ? void 0 : _o.index;
-        const index = Number(rawIndex);
-        const deck = yield deck_1.default.findOne({ deckId: (_p = req.params) === null || _p === void 0 ? void 0 : _p.deckId });
-        if (!deck) {
-            return res.status(400).json({ message: "Deck not found!", success: false });
+        const deckId = req.params.deckId;
+        const cardId = req.params.cardId;
+        const order = Number(req.params.order);
+        // 1. Delete the card
+        const deletedCard = yield card_1.CardModel.findOneAndDelete({ deckId, cardId, order }, { session });
+        if (!deletedCard) {
+            yield session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({ success: false, message: "Card not found" });
         }
-        if (!Number.isInteger(index) || index < 0 || index >= deck.cards.length) {
-            return res.status(400).json({ message: "Invalid card index!", success: false });
-        }
-        deck.cards.splice(index, 1);
-        yield deck.save();
+        // 2. Decrement the cardsCount for the deck
+        yield deck_1.default.updateOne({ deckId }, { $inc: { cardsCount: -1 } }, { session });
+        yield session.commitTransaction();
+        session.endSession();
         res.status(200).json({ success: true });
     }
     catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
         res.status(500).json({
             message: "An unexpected error occurred while deleting the card.",
             success: false,
         });
     }
 }));
-app.put('/card/changeposition/:deckId/:currentIndex/:newIndex', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.put('/card/changeposition/:deckId/:cardId/:newOrder', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const deckId = req.params.deckId;
+    const cardId = req.params.cardId;
+    const newOrder = Number(req.params.newOrder);
     try {
-        const deck = yield deck_1.default.findOne({ deckId: req.params.deckId });
-        if (!deck) {
-            return res.status(200).json({ message: "Card not found!", success: false });
-        }
-        let element_to_move = deck.cards.splice(parseInt(req.params.currentIndex), 1)[0];
-        deck.cards.splice(parseInt(req.params.newIndex), 0, element_to_move);
-        yield deck.save();
+        yield card_1.CardModel.findOneAndUpdate({ deckId, cardId }, { $set: { order: newOrder } });
         res.status(200).json({ success: true });
     }
     catch (error) {
-        if (error.name === 'VersionError') {
-            return res.status(429).json({ message: "Too many requests. Please try again!", success: false });
-        }
-        res.status(500).json({ message: "An unexpected error occurred while moving the card. Please try again later.", success: false });
+        res.status(500).json({
+            message: "An unexpected error occurred while moving the card.",
+            success: false
+        });
     }
 }));
 app.post('/login', passport_1.default.authenticate('local', { failWithError: true }), (req, res) => {
@@ -831,10 +847,10 @@ app.post("/verifyforgotpasswordotp", (req, res) => __awaiter(void 0, void 0, voi
     }
 }));
 app.post("/changepassword", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _q;
+    var _o;
     let user = yield forgotpasswordotps_1.default.findOne({ email: req.body.email });
     // Here we will check if the OTP in our db and the otp that we get in our req are the same ones.
-    if (((user === null || user === void 0 ? void 0 : user.otp) === parseInt((_q = req === null || req === void 0 ? void 0 : req.body) === null || _q === void 0 ? void 0 : _q.otp))) {
+    if (((user === null || user === void 0 ? void 0 : user.otp) === parseInt((_o = req === null || req === void 0 ? void 0 : req.body) === null || _o === void 0 ? void 0 : _o.otp))) {
         const newPassword = req.body.newPassword;
         const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 10);
         try {

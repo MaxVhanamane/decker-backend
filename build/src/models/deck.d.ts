@@ -3,193 +3,22 @@ declare const DeckModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    cards: mongoose.Types.DocumentArray<{
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }> & {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }>;
     deckId: string;
     chapters: mongoose.Types.DocumentArray<{
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }> & {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }>;
     pinned: boolean;
+    cardsCount: number;
     date?: NativeDate | null | undefined;
     title?: string | null | undefined;
     email?: mongoose.Types.ObjectId | null | undefined;
@@ -199,193 +28,22 @@ declare const DeckModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    cards: mongoose.Types.DocumentArray<{
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }> & {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }>;
     deckId: string;
     chapters: mongoose.Types.DocumentArray<{
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }> & {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }>;
     pinned: boolean;
+    cardsCount: number;
     date?: NativeDate | null | undefined;
     title?: string | null | undefined;
     email?: mongoose.Types.ObjectId | null | undefined;
@@ -397,193 +55,22 @@ declare const DeckModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    cards: mongoose.Types.DocumentArray<{
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }> & {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }>;
     deckId: string;
     chapters: mongoose.Types.DocumentArray<{
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }> & {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }>;
     pinned: boolean;
+    cardsCount: number;
     date?: NativeDate | null | undefined;
     title?: string | null | undefined;
     email?: mongoose.Types.ObjectId | null | undefined;
@@ -599,193 +86,22 @@ declare const DeckModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    cards: mongoose.Types.DocumentArray<{
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }> & {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }>;
     deckId: string;
     chapters: mongoose.Types.DocumentArray<{
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }> & {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }>;
     pinned: boolean;
+    cardsCount: number;
     date?: NativeDate | null | undefined;
     title?: string | null | undefined;
     email?: mongoose.Types.ObjectId | null | undefined;
@@ -795,193 +111,22 @@ declare const DeckModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    cards: mongoose.Types.DocumentArray<{
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }> & {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }>;
     deckId: string;
     chapters: mongoose.Types.DocumentArray<{
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }> & {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }>;
     pinned: boolean;
+    cardsCount: number;
     date?: NativeDate | null | undefined;
     title?: string | null | undefined;
     email?: mongoose.Types.ObjectId | null | undefined;
@@ -993,193 +138,22 @@ declare const DeckModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    cards: mongoose.Types.DocumentArray<{
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }> & {
-        note: mongoose.Types.DocumentArray<{
-            children: any[];
-            type?: string | null | undefined;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            children: any[];
-            type?: string | null | undefined;
-        }> & {
-            children: any[];
-            type?: string | null | undefined;
-        }>;
-        searchableContent: string;
-        cardId: string;
-        createdAt: NativeDate;
-    }>;
     deckId: string;
     chapters: mongoose.Types.DocumentArray<{
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }> & {
-        createdAt: NativeDate;
         chapterId: string;
-        cards: mongoose.Types.DocumentArray<{
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }> & {
-            note: mongoose.Types.DocumentArray<{
-                children: any[];
-                type?: string | null | undefined;
-            }, mongoose.Types.Subdocument<mongoose.mongo.BSON.ObjectId, any, {
-                children: any[];
-                type?: string | null | undefined;
-            }> & {
-                children: any[];
-                type?: string | null | undefined;
-            }>;
-            searchableContent: string;
-            cardId: string;
-            createdAt: NativeDate;
-        }>;
+        createdAt: NativeDate;
         chapterTitle?: string | null | undefined;
     }>;
     pinned: boolean;
+    cardsCount: number;
     date?: NativeDate | null | undefined;
     title?: string | null | undefined;
     email?: mongoose.Types.ObjectId | null | undefined;

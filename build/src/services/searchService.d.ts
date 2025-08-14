@@ -25,7 +25,7 @@ export type DeckCardSearchResult = {
         type?: string | null | undefined;
     }[];
     createdAt: Date;
-    cardIndex: number;
+    order: number;
 };
 export type ChapterCardSearchResult = {
     type: 'chapter-card';
@@ -39,7 +39,7 @@ export type ChapterCardSearchResult = {
         type?: string | null | undefined;
     }[];
     createdAt: Date;
-    cardIndex: number;
+    order: number;
 };
 export type CardSearchResult = DeckCardSearchResult | ChapterCardSearchResult;
 export type SearchResult = DeckSearchResult | ChapterSearchResult | CardSearchResult;
