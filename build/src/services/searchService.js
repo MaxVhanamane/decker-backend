@@ -14,134 +14,304 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SearchService = void 0;
 const deck_1 = __importDefault(require("../models/deck"));
-const card_1 = require("../models/card");
+const card_1 = __importDefault(require("../models/card"));
+const chapter_1 = __importDefault(require("../models/chapter"));
 // Escape user input for regex
 function escapeRegex(input) {
     return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 class SearchService {
+    // Optimized approach: Separate queries with proper pagination
     static search(query, userId, page = 1, limit = 20) {
-        var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function* () {
             const skip = (page - 1) * limit;
-            const clean = escapeRegex(query.replace(/['"]+/g, ''));
-            const searchRegex = new RegExp(clean, 'i');
-            const allResults = [];
-            // 1) Load all decks for this user (not deleted)
-            const deckDocs = yield deck_1.default.find({ email: userId, deletedAt: { $exists: false } }, { deckId: 1, title: 1, pinned: 1, createdAt: 1, cardsCount: 1, chapters: 1, _id: 0 })
-                .lean()
-                .exec();
-            // Build maps for quick lookups
-            const deckMap = new Map();
-            const deckIds = [];
-            for (const d of deckDocs) {
-                if (!(d === null || d === void 0 ? void 0 : d.deckId))
-                    continue;
-                deckMap.set(d.deckId, d);
-                deckIds.push(d.deckId);
-                // Deck title match
-                if (d.title && searchRegex.test(d.title)) {
-                    allResults.push({
-                        type: 'deck',
-                        deckId: d.deckId,
-                        title: d.title,
-                        pinned: d.pinned,
-                        createdAt: d.createdAt,
-                        cardsCount: (_a = d.cardsCount) !== null && _a !== void 0 ? _a : 0,
-                    });
-                }
-                // Chapter title match
-                if (Array.isArray(d.chapters)) {
-                    for (const ch of d.chapters) {
-                        if ((ch === null || ch === void 0 ? void 0 : ch.chapterId) && ch.chapterTitle && searchRegex.test(ch.chapterTitle)) {
-                            allResults.push({
-                                type: 'chapter',
-                                deckId: d.deckId,
-                                deckTitle: (_b = d.title) !== null && _b !== void 0 ? _b : '',
-                                chapterId: ch.chapterId,
-                                chapterTitle: ch.chapterTitle,
-                                createdAt: ch.createdAt,
-                            });
-                        }
-                    }
-                }
+            const cleanQuery = escapeRegex(query.replace(/['"]+/g, ''));
+            const searchRegex = new RegExp(cleanQuery, 'i');
+            // First, get valid deck IDs for this user to optimize card queries
+            const validDeckIds = yield deck_1.default.distinct('deckId', {
+                email: userId,
+                deletedAt: { $exists: false }
+            });
+            if (validDeckIds.length === 0) {
+                return { results: [], total: 0, page, totalPages: 0, hasMore: false };
             }
-            if (deckIds.length === 0) {
-                // No decks for this user -> empty results
-                return {
-                    results: [],
-                    total: 0,
-                    page,
-                    totalPages: 0,
-                    hasMore: false,
-                };
+            // Count totals for each type
+            const [deckCount, chapterCount, cardCount] = yield Promise.all([
+                deck_1.default.countDocuments({
+                    email: userId,
+                    deletedAt: { $exists: false },
+                    title: searchRegex
+                }),
+                chapter_1.default.countDocuments({
+                    email: userId,
+                    deletedAt: { $exists: false },
+                    deckId: { $in: validDeckIds },
+                    chapterName: searchRegex
+                }),
+                card_1.default.countDocuments({
+                    deckId: { $in: validDeckIds },
+                    deletedAt: { $exists: false },
+                    searchableContent: searchRegex
+                })
+            ]);
+            const total = deckCount + chapterCount + cardCount;
+            const totalPages = Math.ceil(total / limit);
+            // Determine which types to query based on pagination
+            const results = [];
+            let remaining = limit;
+            let currentSkip = skip;
+            // Decks first (priority 0)
+            if (currentSkip < deckCount && remaining > 0) {
+                const deckResults = yield this.getDecks(searchRegex, userId, Math.max(0, currentSkip), Math.min(remaining, deckCount - currentSkip));
+                results.push(...deckResults);
+                remaining -= deckResults.length;
             }
-            // 2) Load cards from the separate collection, for those decks, matching the regex
-            const cardDocs = yield card_1.CardModel.find({ deckId: { $in: deckIds }, searchableContent: searchRegex }, { cardId: 1, note: 1, createdAt: 1, deckId: 1, chapterId: 1, order: 1, _id: 0 })
-                .lean()
-                .exec();
-            // Optional: Build chapter lookup per deck for nicer labels
-            const chapterTitleMap = new Map();
-            for (const d of deckDocs) {
-                if (!((_c = d.chapters) === null || _c === void 0 ? void 0 : _c.length))
-                    continue;
-                const inner = new Map();
-                for (const ch of d.chapters) {
-                    if (ch.chapterId) {
-                        inner.set(ch.chapterId, { title: (_d = ch.chapterTitle) !== null && _d !== void 0 ? _d : '', createdAt: ch.createdAt });
-                    }
-                }
-                chapterTitleMap.set(d.deckId, inner);
+            currentSkip = Math.max(0, currentSkip - deckCount);
+            // Chapters second (priority 1)
+            if (currentSkip < chapterCount && remaining > 0) {
+                const chapterResults = yield this.getChapters(searchRegex, userId, validDeckIds, Math.max(0, currentSkip), Math.min(remaining, chapterCount - currentSkip));
+                results.push(...chapterResults);
+                remaining -= chapterResults.length;
             }
-            // 3) Convert cards to results
-            for (const c of cardDocs) {
-                const deck = deckMap.get(c.deckId);
-                if (!deck)
-                    continue;
-                if (c.chapterId) {
-                    const chMap = chapterTitleMap.get(c.deckId);
-                    const chInfo = chMap === null || chMap === void 0 ? void 0 : chMap.get(c.chapterId);
-                    allResults.push({
-                        type: 'chapter-card',
-                        deckId: deck.deckId,
-                        deckTitle: (_e = deck.title) !== null && _e !== void 0 ? _e : '',
-                        chapterId: c.chapterId,
-                        chapterTitle: (_f = chInfo === null || chInfo === void 0 ? void 0 : chInfo.title) !== null && _f !== void 0 ? _f : '',
-                        cardId: c.cardId,
-                        note: c.note,
-                        createdAt: c.createdAt,
-                        order: c.order,
-                    });
-                }
-                else {
-                    allResults.push({
-                        type: 'deck-card',
-                        deckId: deck.deckId,
-                        deckTitle: (_g = deck.title) !== null && _g !== void 0 ? _g : '',
-                        cardId: c.cardId,
-                        note: c.note,
-                        createdAt: c.createdAt,
-                        order: c.order,
-                    });
-                }
+            currentSkip = Math.max(0, currentSkip - chapterCount);
+            // Cards last (priority 2 & 3)
+            if (currentSkip < cardCount && remaining > 0) {
+                const cardResults = yield this.getCards(searchRegex, validDeckIds, Math.max(0, currentSkip), remaining);
+                results.push(...cardResults);
             }
-            // 4) Sort by deck,chapter,deck-card,chapter-card
-            const typeOrder = {
-                deck: 0,
-                chapter: 1,
-                'deck-card': 2,
-                'chapter-card': 3,
-            };
-            allResults.sort((a, b) => typeOrder[a.type] - typeOrder[b.type]);
-            // 5) Paginate
-            const total = allResults.length;
-            const paginated = allResults.slice(skip, skip + limit);
             return {
-                results: paginated,
+                results,
                 total,
                 page,
-                totalPages: Math.ceil(total / limit),
-                hasMore: page < Math.ceil(total / limit),
+                totalPages,
+                hasMore: page < totalPages,
+            };
+        });
+    }
+    static getDecks(searchRegex, userId, skip, limit) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const decks = yield deck_1.default.find({
+                email: userId,
+                deletedAt: { $exists: false },
+                title: searchRegex
+            }, {
+                deckId: 1,
+                title: 1,
+                pinned: 1,
+                createdAt: 1,
+                cardsCount: 1
+            })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean();
+            return decks.map(deck => ({
+                type: 'deck',
+                deckId: deck.deckId,
+                title: deck.title || '',
+                pinned: deck.pinned,
+                createdAt: deck.createdAt,
+                cardsCount: deck.cardsCount || 0,
+            }));
+        });
+    }
+    static getChapters(searchRegex, userId, validDeckIds, skip, limit) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pipeline = [
+                {
+                    $match: {
+                        email: userId,
+                        deletedAt: { $exists: false },
+                        deckId: { $in: validDeckIds },
+                        chapterName: searchRegex
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'decks',
+                        let: { deckId: '$deckId' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: { $eq: ['$deckId', '$$deckId'] },
+                                    email: userId,
+                                    deletedAt: { $exists: false }
+                                }
+                            },
+                            { $project: { title: 1, _id: 0 } }
+                        ],
+                        as: 'deckInfo'
+                    }
+                },
+                {
+                    $project: {
+                        chapterId: 1,
+                        deckId: 1,
+                        chapterName: 1,
+                        createdAt: 1,
+                        deckTitle: {
+                            $ifNull: [
+                                { $arrayElemAt: ['$deckInfo.title', 0] },
+                                ''
+                            ]
+                        }
+                    }
+                },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit }
+            ];
+            const chapters = yield chapter_1.default.aggregate(pipeline);
+            return chapters.map(chapter => ({
+                type: 'chapter',
+                deckId: chapter.deckId,
+                deckTitle: chapter.deckTitle,
+                chapterId: chapter.chapterId,
+                chapterTitle: chapter.chapterName,
+                createdAt: chapter.createdAt,
+            }));
+        });
+    }
+    static getCards(searchRegex, validDeckIds, skip, limit) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pipeline = [
+                {
+                    $match: {
+                        deckId: { $in: validDeckIds },
+                        deletedAt: { $exists: false },
+                        searchableContent: searchRegex
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'decks',
+                        let: { deckId: '$deckId' },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: { $eq: ['$deckId', '$$deckId'] },
+                                    deletedAt: { $exists: false }
+                                }
+                            },
+                            { $project: { title: 1, _id: 0 } }
+                        ],
+                        as: 'deckInfo'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'chapters',
+                        let: {
+                            chapterId: '$chapterId',
+                            deckId: '$deckId'
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            { $eq: ['$chapterId', '$$chapterId'] },
+                                            { $eq: ['$deckId', '$$deckId'] },
+                                            { $ne: ['$chapterId', null] }
+                                        ]
+                                    },
+                                    deletedAt: { $exists: false }
+                                }
+                            },
+                            { $project: { chapterName: 1, _id: 0 } }
+                        ],
+                        as: 'chapterInfo'
+                    }
+                },
+                {
+                    $project: {
+                        cardId: 1,
+                        deckId: 1,
+                        chapterId: 1,
+                        note: 1,
+                        createdAt: 1,
+                        order: 1,
+                        deckTitle: {
+                            $ifNull: [
+                                { $arrayElemAt: ['$deckInfo.title', 0] },
+                                ''
+                            ]
+                        },
+                        chapterTitle: {
+                            $ifNull: [
+                                { $arrayElemAt: ['$chapterInfo.chapterName', 0] },
+                                ''
+                            ]
+                        },
+                        // Add sort priority: deck-card = 2, chapter-card = 3
+                        sortOrder: {
+                            $cond: {
+                                if: { $and: [{ $ne: ['$chapterId', null] }, { $ne: ['$chapterId', ''] }] },
+                                then: 3,
+                                else: 2
+                            }
+                        }
+                    }
+                },
+                { $sort: { sortOrder: 1, createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit }
+            ];
+            const cards = yield card_1.default.aggregate(pipeline);
+            return cards.map(card => {
+                const baseCard = {
+                    deckId: card.deckId,
+                    deckTitle: card.deckTitle,
+                    cardId: card.cardId,
+                    note: card.note,
+                    createdAt: card.createdAt,
+                    order: card.order,
+                };
+                // Check if card belongs to a chapter
+                if (card.chapterId && card.chapterId !== null && card.chapterId !== '') {
+                    return Object.assign(Object.assign({ type: 'chapter-card' }, baseCard), { chapterId: card.chapterId, chapterTitle: card.chapterTitle });
+                }
+                else {
+                    return Object.assign({ type: 'deck-card' }, baseCard);
+                }
+            });
+        });
+    }
+    // Optional: Method to get search counts without results (useful for UI)
+    static getSearchCounts(query, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const cleanQuery = escapeRegex(query.replace(/['"]+/g, ''));
+            const searchRegex = new RegExp(cleanQuery, 'i');
+            const validDeckIds = yield deck_1.default.distinct('deckId', {
+                email: userId,
+                deletedAt: { $exists: false }
+            });
+            if (validDeckIds.length === 0) {
+                return { decks: 0, chapters: 0, cards: 0, total: 0 };
+            }
+            const [deckCount, chapterCount, cardCount] = yield Promise.all([
+                deck_1.default.countDocuments({
+                    email: userId,
+                    deletedAt: { $exists: false },
+                    title: searchRegex
+                }),
+                chapter_1.default.countDocuments({
+                    email: userId,
+                    deletedAt: { $exists: false },
+                    deckId: { $in: validDeckIds },
+                    chapterName: searchRegex
+                }),
+                card_1.default.countDocuments({
+                    deckId: { $in: validDeckIds },
+                    deletedAt: { $exists: false },
+                    searchableContent: searchRegex
+                })
+            ]);
+            return {
+                decks: deckCount,
+                chapters: chapterCount,
+                cards: cardCount,
+                total: deckCount + chapterCount + cardCount
             };
         });
     }

@@ -69,8 +69,10 @@ const GoogleStrategy = require("passport-google-oauth20");
 const compression_1 = __importDefault(require("compression"));
 const searchService_1 = require("./services/searchService");
 const extractTextFromSlateNodes_1 = require("./utils/extractTextFromSlateNodes");
-const card_1 = require("./models/card");
+const card_1 = __importDefault(require("./models/card"));
+const chapter_1 = __importDefault(require("./models/chapter"));
 (0, dotenv_1.config)();
+const gracePeriod = 3 * 60 * 1000; //The deleted item will stay in the database for 3 minutes, after which MongoDB’s TTL will remove it permanently.
 let PORT = 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 const app = (0, express_1.default)();
@@ -335,19 +337,6 @@ app.patch('/deck/togglepin/:deckId', fetchUserDetails_1.fetchUserDetails, (req, 
         res.status(500).json({ message: "An unexpected error occurred while pinning the deck. Please try again later!", isError: true });
     }
 }));
-// app.put('/deck/undodeck', fetchUserDetails, async (req: Request, res: Response) => {
-//   const deck = req.body
-//   try {
-//     const newDeck = new DeckModel({
-//       ...deck
-//     })
-//     await newDeck.save()
-//     res.status(200).json({ success: true })
-//   }
-//   catch (error) {
-//     res.status(500).json({ message: "An unexpected error occurred while undoing the deck deletion." });
-//   }
-// })
 app.put('/deck/undodeck', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _g;
     try {
@@ -394,7 +383,7 @@ app.delete('/deck/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => _
             deletedAt: { $exists: false } // Only delete if deletedAt field doesn't exist
         }, {
             deletedAt: new Date(),
-            undoExpiresAt: new Date(Date.now() + 20 * 1000)
+            undoExpiresAt: new Date(Date.now() + gracePeriod)
         }, { new: true });
         if (!result) {
             return res.status(404).json({ error: "Deck not found or already deleted" });
@@ -413,24 +402,166 @@ app.delete('/deck/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => _
         res.status(500).json({ error: "Failed to delete deck" });
     }
 }));
-// Card routes
-app.get('/cards/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// Chapter Routes
+app.get('/chapters/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _j;
+    const { deckId } = req.params;
+    const userId = (_j = req.user) === null || _j === void 0 ? void 0 : _j._id;
     try {
-        const data = yield card_1.CardModel.find({ deckId: req.params.deckId }, { cardId: 1, note: 1, createdAt: 1, order: 1, _id: 0 } // include order in projection if you want
-        )
+        // Fetch only chapters belonging to this user and deck
+        const chapters = yield chapter_1.default.find({ deckId, email: userId, deletedAt: { $exists: false } }, { _id: 0, email: 0, updatedAt: 0, __v: 0 }).sort({ order: -1 });
+        const maxOrder = chapters.length > 0 ? chapters[0].order : 0;
+        return res.status(200).json({ chapters, maxOrder });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred while fetching chapters. Please try again later.",
+        });
+    }
+}));
+app.post('/chapter', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _k;
+    const { deckId, chapterName, chapterId, maxOrder } = req.body;
+    const newOrder = Number(maxOrder) + 10;
+    const userId = (_k = req.user) === null || _k === void 0 ? void 0 : _k._id;
+    try {
+        const newChapter = yield chapter_1.default.create({
+            deckId,
+            email: userId,
+            chapterName,
+            chapterId,
+            order: newOrder,
+            cardsCount: 0
+        });
+        return res.status(201).json({
+            success: true,
+            chapter: newChapter
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred while creating the chapter. Please try again later."
+        });
+    }
+}));
+app.put('/chapter/editchapter/:deckId/:chapterId', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _l;
+    try {
+        const { deckId, chapterId } = req.params;
+        const { chapterName } = req.body;
+        const userId = (_l = req.user) === null || _l === void 0 ? void 0 : _l._id;
+        // Update only if this chapter belongs to the user and deck
+        const updatedChapter = yield chapter_1.default.findOneAndUpdate({ deckId, chapterId, email: userId, deletedAt: { $exists: false } }, { $set: { chapterName } }, { new: true });
+        if (!updatedChapter) {
+            return res.status(404).json({ success: false, message: "Chapter not found" });
+        }
+        res.status(200).json({
+            success: true,
+            chapter: updatedChapter
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred while saving the edited chapter. Please try again later!",
+        });
+    }
+}));
+app.delete("/chapter/:deckId/:chapterId", fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _m;
+    const { deckId, chapterId } = req.params;
+    const userId = (_m = req.user) === null || _m === void 0 ? void 0 : _m._id;
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const now = new Date();
+        const undoExpiry = new Date(Date.now() + gracePeriod);
+        // 1. Soft delete the chapter
+        const chapter = yield chapter_1.default.findOneAndUpdate({ deckId, chapterId, email: userId, deletedAt: { $exists: false } }, { $set: { deletedAt: now, undoExpiresAt: undoExpiry } }, { new: true, session });
+        if (!chapter) {
+            throw new mongoose_1.Error("Chapter not found or already deleted");
+        }
+        // 2. Soft delete related cards
+        const cards = yield card_1.default.updateMany({ deckId, chapterId, deletedAt: { $exists: false } }, { $set: { deletedAt: now, undoExpiresAt: undoExpiry } }, { session });
+        // 3. Decrement deck's cardsCount using modifiedCount
+        if (cards.modifiedCount > 0) {
+            yield deck_1.default.updateOne({ deckId, email: userId }, { $inc: { cardsCount: -cards.modifiedCount } }, { session });
+        }
+        yield session.commitTransaction();
+        session.endSession();
+        return res.status(200).json({
+            message: "Chapter and its cards soft-deleted. Undo possible within grace period.",
+            chapter,
+            softDeletedCards: cards.modifiedCount,
+        });
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        console.error("Transaction failed:", error);
+        return res.status(500).json({ error: error.message });
+    }
+}));
+app.put('/chapter/undo', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _o;
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
+    try {
+        const { chapterId, deckId } = req.body;
+        const userId = (_o = req.user) === null || _o === void 0 ? void 0 : _o._id;
+        // 1. Restore chapter
+        const restoredChapter = yield chapter_1.default.findOneAndUpdate({ chapterId, deckId, email: userId, deletedAt: { $exists: true } }, { $unset: { deletedAt: "", undoExpiresAt: "" } }, { new: true, session });
+        if (!restoredChapter) {
+            yield session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({
+                success: false,
+                message: "Chapter not found!",
+            });
+        }
+        // 2. Restore all cards under this chapter
+        const restoredCards = yield card_1.default.updateMany({ chapterId, deckId, deletedAt: { $exists: true } }, { $unset: { deletedAt: "", undoExpiresAt: "" } }, { session });
+        // 3. Increment deck’s cardsCount
+        const restoredCount = restoredCards.modifiedCount || 0;
+        yield deck_1.default.updateOne({ deckId, email: userId }, { $inc: { cardsCount: restoredCount } }, { session });
+        yield session.commitTransaction();
+        session.endSession();
+        res.status(200).json({
+            success: true,
+            message: "Chapter and its cards restored successfully",
+            chapter: restoredChapter,
+            restoredCards: restoredCount,
+        });
+    }
+    catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
+        res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred while undoing the chapter.",
+        });
+    }
+}));
+// Card routes
+app.get('/cards/:deckId/:chapterId?', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { deckId, chapterId } = req.params;
+        // Build query condition dynamically
+        // If deletedAt is present means the card was soft deleted
+        const query = { deckId, chapterId: chapterId ? chapterId : null, deletedAt: { $exists: false } };
+        const data = yield card_1.default.find(query, { cardId: 1, note: 1, createdAt: 1, order: 1, chapterId: 1, _id: 0 })
             .sort({ order: -1 })
             .exec();
-        const maxOrder = data.length > 0 ? data[0].order : -1;
-        if (data) {
-            res.status(200).json({ cards: data, maxOrder: maxOrder });
-        }
-        else {
-            res.status(404).json({ message: "No cards found!" });
-        }
+        const maxOrder = data.length > 0 ? data[0].order : 0;
+        res.status(200).json({ cards: data, maxOrder });
     }
     catch (error) {
         if (error.name === "CastError") {
-            // Handle the error specifically when an invalid ID is provided
             res.status(400).json({ message: "Invalid deck ID" });
         }
         else {
@@ -439,42 +570,55 @@ app.get('/cards/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __a
     }
 }));
 app.post('/card/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _j, _k, _l, _m;
+    var _p, _q, _r, _s, _t;
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
         const deckId = req.params.deckId;
+        const chapterId = req.body.chapterId || null;
+        const userId = (_p = req.user) === null || _p === void 0 ? void 0 : _p._id;
         const newOrder = Number(req.body.maxOrder) + 10;
         let searchableContent = "";
-        if ((_k = (_j = req.body) === null || _j === void 0 ? void 0 : _j.content) === null || _k === void 0 ? void 0 : _k.note) {
-            searchableContent = (0, extractTextFromSlateNodes_1.extractTextFromSlateNodes)((_m = (_l = req.body) === null || _l === void 0 ? void 0 : _l.content) === null || _m === void 0 ? void 0 : _m.note);
+        if ((_r = (_q = req.body) === null || _q === void 0 ? void 0 : _q.content) === null || _r === void 0 ? void 0 : _r.note) {
+            searchableContent = (0, extractTextFromSlateNodes_1.extractTextFromSlateNodes)((_t = (_s = req.body) === null || _s === void 0 ? void 0 : _s.content) === null || _t === void 0 ? void 0 : _t.note);
         }
         // 1. Create the new card
-        const newCard = new card_1.CardModel(Object.assign(Object.assign({}, req.body.content), { searchableContent, order: newOrder, deckId }));
+        const newCard = new card_1.default(Object.assign(Object.assign({}, req.body.content), { searchableContent, order: newOrder, deckId,
+            chapterId, email: userId }));
         yield newCard.save({ session });
-        // 2. Increment the cardsCount for that deck
-        yield deck_1.default.updateOne({ deckId }, { $inc: { cardsCount: 1 } }, { session });
+        // 2. Increment counts
+        yield deck_1.default.updateOne({ deckId, email: userId }, { $inc: { cardsCount: 1 } }, { session });
+        if (chapterId) {
+            yield chapter_1.default.updateOne({ deckId, chapterId, email: userId, deletedAt: { $exists: false } }, { $inc: { cardsCount: 1 } }, { session });
+        }
+        // 3. Commit transaction
         yield session.commitTransaction();
         session.endSession();
-        res.status(201).json({ success: true });
+        res.status(201).json({ success: true, card: newCard });
     }
     catch (error) {
         yield session.abortTransaction();
         session.endSession();
+        console.error(error);
         res.status(500).json({ message: "An unexpected error occurred while creating the card. Please try again later." });
     }
 }));
 //Edit card
-app.patch('/card/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.patch('/card/:deckId/:chapterId?', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const deckId = req.params.deckId;
+    const chapterId = req.params.chapterId;
     const cardId = req.body.cardId;
     const { note } = req.body.newContent;
     let searchableContent = "";
     if (note) {
         searchableContent = (0, extractTextFromSlateNodes_1.extractTextFromSlateNodes)(note);
     }
+    const filter = { deckId, cardId };
+    if (chapterId) {
+        filter["chapterId"] = chapterId;
+    }
     try {
-        const updatedCard = yield card_1.CardModel.findOneAndUpdate({ deckId, cardId }, {
+        const updatedCard = yield card_1.default.findOneAndUpdate(filter, {
             $set: {
                 note,
                 searchableContent,
@@ -490,74 +634,148 @@ app.patch('/card/:deckId', fetchUserDetails_1.fetchUserDetails, (req, res) => __
     }
 }));
 app.put('/card/undocard', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _u;
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
-        const cardContent = req.body.undoCardDetails;
-        const deckId = cardContent.deckId;
-        let searchableContent = "";
-        if (cardContent === null || cardContent === void 0 ? void 0 : cardContent.note) {
-            searchableContent = (0, extractTextFromSlateNodes_1.extractTextFromSlateNodes)(cardContent === null || cardContent === void 0 ? void 0 : cardContent.note);
+        const { cardId, deckId, chapterId } = req.body;
+        const userId = (_u = req.user) === null || _u === void 0 ? void 0 : _u._id;
+        // 1. Build dynamic filter
+        const cardFilter = {
+            cardId,
+            deckId,
+            deletedAt: { $exists: true }
+        };
+        if (chapterId) {
+            cardFilter.chapterId = chapterId;
         }
-        const updatedContent = Object.assign(Object.assign({}, cardContent), { searchableContent });
-        // 1. Restore the card
-        const newCard = new card_1.CardModel(updatedContent);
-        yield newCard.save({ session });
-        // 2. Increment deck's cardsCount
-        yield deck_1.default.updateOne({ deckId }, { $inc: { cardsCount: 1 } }, { session });
+        // 2. Restore the card by unsetting soft-delete fields
+        const restoredCard = yield card_1.default.findOneAndUpdate(cardFilter, { $unset: { deletedAt: "", undoExpiresAt: "" } }, { new: true, session });
+        if (!restoredCard) {
+            yield session.abortTransaction();
+            session.endSession();
+            return res.status(404).json({
+                success: false,
+                message: "Card not found or already active"
+            });
+        }
+        // 3. Increment card counts back
+        yield deck_1.default.updateOne({ deckId, user: userId }, { $inc: { cardsCount: 1 } }, { session });
+        if (chapterId) {
+            yield chapter_1.default.updateOne({ chapterId, deckId, user: userId }, { $inc: { cardsCount: 1 } }, { session });
+        }
+        // 4. Commit transaction
         yield session.commitTransaction();
         session.endSession();
-        res.status(200).json({ success: true });
+        res.status(200).json({
+            success: true,
+            message: "Card restored successfully",
+            card: restoredCard,
+        });
     }
     catch (error) {
         yield session.abortTransaction();
         session.endSession();
+        console.error("Undo card error:", error);
         res.status(500).json({
-            message: "An unexpected error occurred while undoing the card deletion."
+            success: false,
+            message: "An unexpected error occurred while undoing the card deletion.",
         });
     }
 }));
-app.delete('/card/:deckId/:cardId/:order', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.delete('/card/:deckId/:cardId/:chapterId?', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _v;
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
-        const deckId = req.params.deckId;
-        const cardId = req.params.cardId;
-        const order = Number(req.params.order);
-        // 1. Delete the card
-        const deletedCard = yield card_1.CardModel.findOneAndDelete({ deckId, cardId, order }, { session });
+        const { deckId, cardId, chapterId } = req.params;
+        const userId = (_v = req.user) === null || _v === void 0 ? void 0 : _v._id;
+        // 1. Build dynamic filter for card
+        const cardFilter = { cardId, deckId };
+        if (chapterId) {
+            cardFilter.chapterId = chapterId;
+        }
+        // 2. Soft delete the card (instead of hard delete)
+        const deletedCard = yield card_1.default.findOneAndUpdate(cardFilter, {
+            $set: {
+                deletedAt: new Date(),
+                undoExpiresAt: new Date(Date.now() + gracePeriod),
+            },
+        }, { new: true, session });
         if (!deletedCard) {
             yield session.abortTransaction();
             session.endSession();
-            return res.status(404).json({ success: false, message: "Card not found" });
+            return res
+                .status(404)
+                .json({ success: false, message: "Card not found" });
         }
-        // 2. Decrement the cardsCount for the deck
-        yield deck_1.default.updateOne({ deckId }, { $inc: { cardsCount: -1 } }, { session });
+        // 3. Decrement deck card count
+        yield deck_1.default.updateOne({ deckId, user: userId }, { $inc: { cardsCount: -1 } }, { session });
+        // 4. If card belongs to a chapter, decrement that too
+        if (chapterId) {
+            yield chapter_1.default.updateOne({ chapterId, deckId, user: userId }, { $inc: { cardsCount: -1 } }, { session });
+        }
         yield session.commitTransaction();
         session.endSession();
-        res.status(200).json({ success: true });
+        res.status(200).json({
+            success: true,
+            message: "Card soft-deleted successfully",
+        });
     }
     catch (error) {
         yield session.abortTransaction();
         session.endSession();
+        console.error("Delete card error:", error);
         res.status(500).json({
-            message: "An unexpected error occurred while deleting the card.",
             success: false,
+            message: "An unexpected error occurred while deleting the card.",
         });
     }
 }));
-app.put('/card/changeposition/:deckId/:cardId/:newOrder', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.put('/card/changeposition/:deckId/:cardId/:newOrder/:chapterId?', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const deckId = req.params.deckId;
     const cardId = req.params.cardId;
+    const chapterId = req.params.chapterId;
     const newOrder = Number(req.params.newOrder);
+    const { reindexNeeded } = req.body;
+    const filter = {
+        deckId,
+        cardId,
+    };
+    if (chapterId) {
+        filter.chapterId = chapterId;
+    }
     try {
-        yield card_1.CardModel.findOneAndUpdate({ deckId, cardId }, { $set: { order: newOrder } });
-        res.status(200).json({ success: true });
+        // 1. Update moved card
+        yield card_1.default.findOneAndUpdate(filter, { $set: { order: newOrder } });
+        // 2. If frontend flagged reindex
+        if (reindexNeeded) {
+            const query = { deckId };
+            if (chapterId)
+                query.chapterId = chapterId;
+            // Fetch all cards sorted in descending order
+            const cards = yield card_1.default.find(query).sort({ order: -1 });
+            if (cards.length) {
+                // Dynamic starting order = cards.length * 10
+                const startOrder = cards.length * 10;
+                const updates = cards.map((card, index) => ({
+                    updateOne: {
+                        filter: { _id: card._id },
+                        update: { $set: { order: startOrder - index * 10 } }, // descending with gap=10
+                    },
+                }));
+                yield card_1.default.bulkWrite(updates);
+            }
+            return res.status(200).json({ success: true, reindexed: true });
+        }
+        // Normal case
+        res.status(200).json({ success: true, reindexed: false });
     }
     catch (error) {
         res.status(500).json({
-            message: "An unexpected error occurred while moving the card.",
-            success: false
+            message: 'An unexpected error occurred while moving the card.',
+            success: false,
+            error: error instanceof mongoose_1.Error ? error.message : error,
         });
     }
 }));
@@ -847,10 +1065,10 @@ app.post("/verifyforgotpasswordotp", (req, res) => __awaiter(void 0, void 0, voi
     }
 }));
 app.post("/changepassword", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _o;
+    var _w;
     let user = yield forgotpasswordotps_1.default.findOne({ email: req.body.email });
     // Here we will check if the OTP in our db and the otp that we get in our req are the same ones.
-    if (((user === null || user === void 0 ? void 0 : user.otp) === parseInt((_o = req === null || req === void 0 ? void 0 : req.body) === null || _o === void 0 ? void 0 : _o.otp))) {
+    if (((user === null || user === void 0 ? void 0 : user.otp) === parseInt((_w = req === null || req === void 0 ? void 0 : req.body) === null || _w === void 0 ? void 0 : _w.otp))) {
         const newPassword = req.body.newPassword;
         const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 10);
         try {

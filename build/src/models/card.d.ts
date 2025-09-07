@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-export declare const CardModel: mongoose.Model<{
+declare const CardModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    chapterId: string;
     deckId: string;
+    chapterId: string;
     cardId: string;
     note: mongoose.Types.DocumentArray<{
         children: any[];
@@ -18,12 +18,14 @@ export declare const CardModel: mongoose.Model<{
     }>;
     searchableContent: string;
     order: number;
+    deletedAt?: NativeDate | null | undefined;
+    undoExpiresAt?: NativeDate | null | undefined;
 }, {}, {}, {}, mongoose.Document<unknown, {}, {
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    chapterId: string;
     deckId: string;
+    chapterId: string;
     cardId: string;
     note: mongoose.Types.DocumentArray<{
         children: any[];
@@ -37,14 +39,16 @@ export declare const CardModel: mongoose.Model<{
     }>;
     searchableContent: string;
     order: number;
+    deletedAt?: NativeDate | null | undefined;
+    undoExpiresAt?: NativeDate | null | undefined;
 }, {}, {
     timestamps: true;
 }> & {
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    chapterId: string;
     deckId: string;
+    chapterId: string;
     cardId: string;
     note: mongoose.Types.DocumentArray<{
         children: any[];
@@ -58,6 +62,8 @@ export declare const CardModel: mongoose.Model<{
     }>;
     searchableContent: string;
     order: number;
+    deletedAt?: NativeDate | null | undefined;
+    undoExpiresAt?: NativeDate | null | undefined;
 } & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -68,8 +74,8 @@ export declare const CardModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    chapterId: string;
     deckId: string;
+    chapterId: string;
     cardId: string;
     note: mongoose.Types.DocumentArray<{
         children: any[];
@@ -83,12 +89,14 @@ export declare const CardModel: mongoose.Model<{
     }>;
     searchableContent: string;
     order: number;
+    deletedAt?: NativeDate | null | undefined;
+    undoExpiresAt?: NativeDate | null | undefined;
 }, mongoose.Document<unknown, {}, mongoose.FlatRecord<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    chapterId: string;
     deckId: string;
+    chapterId: string;
     cardId: string;
     note: mongoose.Types.DocumentArray<{
         children: any[];
@@ -102,14 +110,16 @@ export declare const CardModel: mongoose.Model<{
     }>;
     searchableContent: string;
     order: number;
+    deletedAt?: NativeDate | null | undefined;
+    undoExpiresAt?: NativeDate | null | undefined;
 }>, {}, mongoose.ResolveSchemaOptions<{
     timestamps: true;
 }>> & mongoose.FlatRecord<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
-    chapterId: string;
     deckId: string;
+    chapterId: string;
     cardId: string;
     note: mongoose.Types.DocumentArray<{
         children: any[];
@@ -123,8 +133,11 @@ export declare const CardModel: mongoose.Model<{
     }>;
     searchableContent: string;
     order: number;
+    deletedAt?: NativeDate | null | undefined;
+    undoExpiresAt?: NativeDate | null | undefined;
 }> & {
     _id: mongoose.Types.ObjectId;
 } & {
     __v: number;
 }>>;
+export default CardModel;

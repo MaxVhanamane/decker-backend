@@ -1,28 +1,30 @@
 import mongoose from "mongoose";
-declare const DeckModel: mongoose.Model<{
+declare const ChapterModel: mongoose.Model<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
     deckId: string;
-    pinned: boolean;
     cardsCount: number;
-    title?: string | null | undefined;
-    date?: NativeDate | null | undefined;
-    email?: mongoose.Types.ObjectId | null | undefined;
+    email: mongoose.Types.ObjectId;
+    createdAt: NativeDate;
+    chapterId: string;
+    order: number;
     deletedAt?: NativeDate | null | undefined;
     undoExpiresAt?: NativeDate | null | undefined;
+    chapterName?: string | null | undefined;
 }, {}, {}, {}, mongoose.Document<unknown, {}, {
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
     deckId: string;
-    pinned: boolean;
     cardsCount: number;
-    title?: string | null | undefined;
-    date?: NativeDate | null | undefined;
-    email?: mongoose.Types.ObjectId | null | undefined;
+    email: mongoose.Types.ObjectId;
+    createdAt: NativeDate;
+    chapterId: string;
+    order: number;
     deletedAt?: NativeDate | null | undefined;
     undoExpiresAt?: NativeDate | null | undefined;
+    chapterName?: string | null | undefined;
 }, {}, {
     timestamps: true;
 }> & {
@@ -30,13 +32,14 @@ declare const DeckModel: mongoose.Model<{
     updatedAt: NativeDate;
 } & {
     deckId: string;
-    pinned: boolean;
     cardsCount: number;
-    title?: string | null | undefined;
-    date?: NativeDate | null | undefined;
-    email?: mongoose.Types.ObjectId | null | undefined;
+    email: mongoose.Types.ObjectId;
+    createdAt: NativeDate;
+    chapterId: string;
+    order: number;
     deletedAt?: NativeDate | null | undefined;
     undoExpiresAt?: NativeDate | null | undefined;
+    chapterName?: string | null | undefined;
 } & {
     _id: mongoose.Types.ObjectId;
 } & {
@@ -48,25 +51,27 @@ declare const DeckModel: mongoose.Model<{
     updatedAt: NativeDate;
 } & {
     deckId: string;
-    pinned: boolean;
     cardsCount: number;
-    title?: string | null | undefined;
-    date?: NativeDate | null | undefined;
-    email?: mongoose.Types.ObjectId | null | undefined;
+    email: mongoose.Types.ObjectId;
+    createdAt: NativeDate;
+    chapterId: string;
+    order: number;
     deletedAt?: NativeDate | null | undefined;
     undoExpiresAt?: NativeDate | null | undefined;
+    chapterName?: string | null | undefined;
 }, mongoose.Document<unknown, {}, mongoose.FlatRecord<{
     createdAt: NativeDate;
     updatedAt: NativeDate;
 } & {
     deckId: string;
-    pinned: boolean;
     cardsCount: number;
-    title?: string | null | undefined;
-    date?: NativeDate | null | undefined;
-    email?: mongoose.Types.ObjectId | null | undefined;
+    email: mongoose.Types.ObjectId;
+    createdAt: NativeDate;
+    chapterId: string;
+    order: number;
     deletedAt?: NativeDate | null | undefined;
     undoExpiresAt?: NativeDate | null | undefined;
+    chapterName?: string | null | undefined;
 }>, {}, mongoose.ResolveSchemaOptions<{
     timestamps: true;
 }>> & mongoose.FlatRecord<{
@@ -74,16 +79,17 @@ declare const DeckModel: mongoose.Model<{
     updatedAt: NativeDate;
 } & {
     deckId: string;
-    pinned: boolean;
     cardsCount: number;
-    title?: string | null | undefined;
-    date?: NativeDate | null | undefined;
-    email?: mongoose.Types.ObjectId | null | undefined;
+    email: mongoose.Types.ObjectId;
+    createdAt: NativeDate;
+    chapterId: string;
+    order: number;
     deletedAt?: NativeDate | null | undefined;
     undoExpiresAt?: NativeDate | null | undefined;
+    chapterName?: string | null | undefined;
 }> & {
     _id: mongoose.Types.ObjectId;
 } & {
     __v: number;
 }>>;
-export default DeckModel;
+export default ChapterModel;

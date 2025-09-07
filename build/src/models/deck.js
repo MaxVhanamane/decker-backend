@@ -6,15 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const { Schema } = mongoose_1.default;
 const uuid_1 = require("uuid");
-const ChapterSchema = new Schema({
-    chapterId: { type: String, required: true, default: () => (0, uuid_1.v4)() },
-    chapterTitle: String,
-    createdAt: { type: Date, required: true, default: Date.now }
-});
 const DeckSchema = new Schema({
     deckId: { type: String, required: true, unique: true, default: () => (0, uuid_1.v4)() },
     title: String,
-    chapters: [ChapterSchema],
     pinned: { type: Boolean, default: false },
     cardsCount: { type: Number, default: 0 },
     email: { type: Schema.Types.ObjectId, ref: "User" },
@@ -28,7 +22,7 @@ DeckSchema.index({ undoExpiresAt: 1 }, {
     expireAfterSeconds: 0,
     partialFilterExpression: {
         deletedAt: { $exists: true },
-        undoExpiresAt: { $exists: true } // Field exists 
+        undoExpiresAt: { $exists: true }
     }
 });
 const DeckModel = mongoose_1.default.model("Deck", DeckSchema);

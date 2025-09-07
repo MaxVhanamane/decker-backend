@@ -22,7 +22,7 @@ export type DeckCardSearchResult = {
     cardId: string;
     note: {
         children: any[];
-        type?: string | null | undefined;
+        type?: string | null;
     }[];
     createdAt: Date;
     order: number;
@@ -36,7 +36,7 @@ export type ChapterCardSearchResult = {
     cardId: string;
     note: {
         children: any[];
-        type?: string | null | undefined;
+        type?: string | null;
     }[];
     createdAt: Date;
     order: number;
@@ -52,4 +52,13 @@ export interface SearchResponse {
 }
 export declare class SearchService {
     static search(query: string, userId: mongoose.Types.ObjectId, page?: number, limit?: number): Promise<SearchResponse>;
+    private static getDecks;
+    private static getChapters;
+    private static getCards;
+    static getSearchCounts(query: string, userId: mongoose.Types.ObjectId): Promise<{
+        decks: number;
+        chapters: number;
+        cards: number;
+        total: number;
+    }>;
 }
