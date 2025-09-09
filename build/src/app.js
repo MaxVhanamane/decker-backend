@@ -547,6 +547,49 @@ app.put('/chapter/undo', fetchUserDetails_1.fetchUserDetails, (req, res) => __aw
         });
     }
 }));
+app.put('/chapter/changeposition/:deckId/:chapterId/:newOrder', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const deckId = req.params.deckId;
+    const chapterId = req.params.chapterId;
+    const newOrder = Number(req.params.newOrder);
+    const { reindexNeeded } = req.body;
+    const email = req.user._id;
+    const filter = {
+        deckId,
+        chapterId,
+        email
+    };
+    try {
+        // 1. Update moved chapter
+        yield chapter_1.default.findOneAndUpdate(filter, { $set: { order: newOrder } });
+        // 2. If frontend flagged reindex
+        if (reindexNeeded) {
+            const query = { deckId, email };
+            // Fetch all cards sorted in descending order
+            const chapters = yield chapter_1.default.find(query).sort({ order: -1 });
+            if (chapters.length) {
+                // Dynamic starting order = cards.length * 10
+                const startOrder = chapters.length * 10;
+                const updates = chapters.map((chapter, index) => ({
+                    updateOne: {
+                        filter: { _id: chapter._id },
+                        update: { $set: { order: startOrder - index * 10 } }, // descending with gap=10
+                    },
+                }));
+                yield chapter_1.default.bulkWrite(updates);
+            }
+            return res.status(200).json({ success: true, reindexed: true });
+        }
+        // Normal case
+        res.status(200).json({ success: true, reindexed: false });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: 'An unexpected error occurred while changing chapter position.',
+            success: false,
+            error: error instanceof mongoose_1.Error ? error.message : error,
+        });
+    }
+}));
 // Card routes
 app.get('/cards/:deckId/:chapterId?', fetchUserDetails_1.fetchUserDetails, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
